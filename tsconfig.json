@@ -1,0 +1,46 @@
+/*
+  # Enforce the "show online status" privacy toggle in the database
+
+  ## Problem
+  The heartbeat in `src/hooks/usePresence.ts` writes `is_online = true` every 20
+  seconds regardless of the user's privacy toggle, and only the client hides it
+  (`src/lib/status.ts` returns 'offline' when `show_online_status` is false).
+  Because `presence_read_all` serves every row to anon, anyone querying the table
+  directly could read the true online state and last-seen time of a user who had
+  turned their status off.
+
+  ## Change
+  A BEFORE INSERT OR UPDATE trigger normalizes any row whose owner has hidden
+  their status: `is_online` is forced to false and `last_seen_at` is nulled, so
+  the private value is never stored and therefore never served.
+
+  The client already renders such a row as offline, so behaviour for legitimate
+  users is unchanged. Existing rows are normalized once below.
+*/
+
+CREATE OR REPLACE FUNCTION enforce_presence_privacy()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = public, pg_temp
+AS $$
+BEGIN
+  IF NEW.show_online_status IS NOT TRUE THEN
+    NEW.is_online := false;
+    NEW.last_seen_at := NULL;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_enforce_presence_privacy ON user_presence;
+
+CREATE TRIGGER trg_enforce_presence_privacy
+  BEFORE INSERT OR UPDATE ON user_presence
+  FOR EACH ROW
+  EXECUTE FUNCTION enforce_presence_privacy();
+
+UPDATE user_presence
+SET is_online = false, last_seen_at = NULL
+WHERE show_online_status IS NOT TRUE
+  AND (is_online IS TRUE OR last_seen_at IS NOT NULL);

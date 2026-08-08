@@ -1,0 +1,35 @@
+/*
+# Create increment_shares and increment_views RPC functions
+
+## New Functions
+- `increment_shares(post_id text)` — atomically increments the shares counter
+- `increment_views(post_id text)` — atomically increments the views counter
+
+## Security
+- Functions are SECURITY DEFINER (run as the owner) so they can update rows
+- Callable by anon and authenticated roles
+- Only increment, no arbitrary write access
+*/
+
+CREATE OR REPLACE FUNCTION increment_shares(post_id text)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  UPDATE posts SET shares = shares + 1 WHERE id = post_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION increment_views(post_id text)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  UPDATE posts SET views = views + 1 WHERE id = post_id;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION increment_shares(text) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION increment_views(text) TO anon, authenticated;

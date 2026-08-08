@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="x-apple-disable-message-reformatting">
+  <meta name="color-scheme" content="dark">
+  <meta name="supported-color-schemes" content="dark">
+  <title>Verifica tu correo electrónico – Vexora</title>
+  <!-- Asunto: Verifica tu correo electrónico – Vexora -->
+  <style>
+    :root { color-scheme: dark; }
+    body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+    table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+    table { border-collapse: collapse !important; }
+    img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
+    body { height: 100% !important; margin: 0 !important; padding: 0 !important; width: 100% !important; }
+    a { text-decoration: none; }
+
+    @media screen and (max-width: 600px) {
+      .outer-padding { padding: 28px 12px !important; }
+      .card-padding { padding: 34px 22px !important; }
+      .headline { font-size: 30px !important; line-height: 36px !important; }
+      .verification-code { font-size: 38px !important; letter-spacing: 8px !important; }
+      .button-cell { width: 100% !important; }
+      .button-link { display: block !important; padding: 16px 20px !important; }
+      .fallback-url { overflow-wrap: anywhere !important; word-break: break-word !important; }
+    }
+  </style>
+</head>
+<body style="background-color: #030712; margin: 0; padding: 0;">
+  <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #030712;">
+    <tr>
+      <td align="center" class="outer-padding" style="padding: 48px 16px;">
+        <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="max-width: 560px;">
+          <tr>
+            <td align="center" style="padding: 0 0 26px;">
+              <!-- Logo oficial de Vexora: V futurista con planeta Tierra y órbita. Para clientes que bloquean SVG, reemplaza este bloque por <img src="{{logo_url}}" width="56" alt="Vexora"> con una URL HTTPS pública de public/vexora-logo.svg. -->
+              <svg width="56" height="56" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;">
+                <defs>
+                  <linearGradient id="vg" x1="14" y1="16" x2="86" y2="84" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#00D4FF"/>
+                    <stop offset="0.45" stop-color="#2563EB"/>
+                    <stop offset="1" stop-color="#A855F7"/>
+                  </linearGradient>
+                  <radialGradient id="eg" cx="0.38" cy="0.32" r="0.78">
+                    <stop stop-color="#38bdf8"/>
+                    <stop offset="0.55" stop-color="#0ea5e9"/>
+                    <stop offset="1" stop-color="#1e3a8a"/>
+                  </radialGradient>
+                </defs>
+                <path d="M20 18 L50 80" stroke="url(#vg)" stroke-width="11" stroke-linecap="round"/>
+                <path d="M80 18 L50 80" stroke="url(#vg)" stroke-width="11" stroke-linecap="round"/>
+                <ellipse cx="50" cy="62" rx="23" ry="9" transform="rotate(-24 50 62)" stroke="url(#vg)" stroke-width="2.4" opacity="0.85"/>
+                <circle cx="50" cy="62" r="13" fill="url(#eg)"/>
+                <path d="M43 58.5c2.6-1.6 5.2-1 7 .2 1.7 1.2 3.4 1 5.4-.4 1.4-1 3-.8 4.2.1" stroke="#22c55e" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.9"/>
+                <path d="M45.5 66c2-1.4 4.2-1 6 .3 1.6 1.1 3.3.7 4.8-.4" stroke="#16a34a" stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.85"/>
+                <circle cx="45.5" cy="57.5" r="3.6" fill="#ffffff" opacity="0.28"/>
+              </svg>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 0;">
+              <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td width="33.33%" height="3" style="background-color: #00A8FF; font-size: 0; line-height: 0;">&nbsp;</td>
+                  <td width="33.33%" height="3" style="background-color: #2563EB; font-size: 0; line-height: 0;">&nbsp;</td>
+                  <td width="33.33%" height="3" style="background-color: #A855F7; font-size: 0; line-height: 0;">&nbsp;</td>
+                </tr>
+                <tr>
+                  <td colspan="3" style="background-color: #071426; border: 1px solid #172b4d; border-top: 0; border-radius: 0 0 24px 24px; box-shadow: 0 18px 48px rgba(0, 0, 0, 0.34);">
+                    <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td class="card-padding" align="center" style="padding: 48px 52px;">
+                          <p style="color: #00A8FF; font-family: Inter, Arial, Helvetica, sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 1.8px; line-height: 18px; margin: 0 0 14px; text-transform: uppercase;">Una cuenta más segura</p>
+                          <h1 class="headline" style="color: #ffffff; font-family: Inter, Arial, Helvetica, sans-serif; font-size: 36px; font-weight: 700; line-height: 42px; margin: 0 0 28px;">Verifica tu cuenta</h1>
+                          <p style="color: #d7e1f0; font-family: Inter, Arial, Helvetica, sans-serif; font-size: 16px; line-height: 26px; margin: 0 0 8px; text-align: left;">Hola {{nombre}}.</p>
+                          <p style="color: #d7e1f0; font-family: Inter, Arial, Helvetica, sans-serif; font-size: 16px; line-height: 26px; margin: 0 0 26px; text-align: left;">Gracias por unirte a Vexora.</p>
+                          <p style="color: #9aaac4; font-family: Inter, Arial, Helvetica, sans-serif; font-size: 15px; line-height: 24px; margin: 0 0 14px;">Tu código de verificación es:</p>
+                          <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0">
+                            <tr>
+                              <td align="center" style="background-color: #030b1b; border: 1px solid #23406c; border-radius: 16px; padding: 24px 12px;">
+                                <p class="verification-code" style="color: #ffffff; font-family: Inter, Arial, Helvetica, sans-serif; font-size: 48px; font-weight: 700; letter-spacing: 14px; line-height: 58px; margin: 0 0 0 14px;">{{verification_code}}</p>
+                              </td>
+                            </tr>
+                          </table>
+                          <p style="color: #9aaac4; font-family: Inter, Arial, Helvetica, sans-serif; font-size: 14px; line-height: 22px; margin: 14px 0 28px;">Este código expira en 10 minutos.</p>
+                          <table role="presentation" border="0" cellpadding="0" cellspacing="0" class="button-cell" style="margin: 0 auto;">
+                            <tr>
+                              <td align="center" style="background-color: #2563EB; border-radius: 12px; box-shadow: 0 10px 26px rgba(37, 99, 235, 0.3);">
+                                <a href="{{verification_url}}" class="button-link" style="background-color: #2563EB; border: 1px solid #2563EB; border-radius: 12px; color: #ffffff; display: inline-block; font-family: Inter, Arial, Helvetica, sans-serif; font-size: 16px; font-weight: 700; line-height: 24px; padding: 14px 32px; text-align: center;">Verificar cuenta</a>
+                              </td>
+                            </tr>
+                          </table>
+                          <p style="color: #71829e; font-family: Inter, Arial, Helvetica, sans-serif; font-size: 13px; line-height: 21px; margin: 24px 0 6px;">Si el botón no funciona, copia y pega este enlace:</p>
+                          <p class="fallback-url" style="color: #60a5fa; font-family: Arial, Helvetica, sans-serif; font-size: 12px; line-height: 20px; margin: 0;">{{verification_url}}</p>
+                          <p style="color: #9aaac4; font-family: Inter, Arial, Helvetica, sans-serif; font-size: 13px; line-height: 21px; margin: 26px 0 0;">Si no solicitaste esta cuenta, ignora este correo.</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding: 28px 16px 0;">
+              <p style="color: #71829e; font-family: Inter, Arial, Helvetica, sans-serif; font-size: 13px; line-height: 21px; margin: 0 0 6px;">© 2026 Vexora</p>
+              <p style="color: #71829e; font-family: Inter, Arial, Helvetica, sans-serif; font-size: 13px; line-height: 21px; margin: 0 0 16px;">Conecta&nbsp; • &nbsp;Comparte&nbsp; • &nbsp;Vive</p>
+              <p style="font-family: Arial, Helvetica, sans-serif; font-size: 12px; line-height: 20px; margin: 0;">
+                <a href="{{reglamento_url}}" style="color: #60a5fa;">Reglamento</a>
+                <span style="color: #41526e;">&nbsp; · &nbsp;</span>
+                <a href="{{terminos_url}}" style="color: #60a5fa;">Términos</a>
+                <span style="color: #41526e;">&nbsp; · &nbsp;</span>
+                <a href="{{privacidad_url}}" style="color: #60a5fa;">Privacidad</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

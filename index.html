@@ -1,0 +1,16 @@
+/*
+# Enable Realtime on conversations and messages tables
+
+## Changes
+- Adds `conversations` and `messages` to the `supabase_realtime` publication
+- This enables INSERT/UPDATE/DELETE events to be broadcast to subscribed clients
+
+## Why
+The app uses Supabase Realtime postgres_changes to receive new messages and
+conversations instantly across devices. Tables must be in the publication
+for realtime events to fire.
+*/
+
+ALTER PUBLICATION supabase_realtime ADD TABLE conversations;
+ALTER PUBLICATION supabase_realtime ADD TABLE messages;
+ALTER PUBLICATION supabase_realtime ADD TABLE notifications;

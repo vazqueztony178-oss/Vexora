@@ -1,0 +1,88 @@
+import { useEffect, useRef, useState } from 'react';
+import { Eye, ImagePlus, Pencil, Trash2 } from 'lucide-react';
+import { cn } from '@/lib/cn';
+
+interface PhotoMenuProps {
+  hasImage: boolean;
+  onView: () => void;
+  onChange: (file: File) => void;
+  onEdit: () => void;
+  onRemove: () => void;
+  trigger: React.ReactNode;
+  align?: 'left' | 'right';
+}
+
+export function PhotoMenu({ hasImage, onView, onChange, onEdit, onRemove, trigger, align = 'right' }: PhotoMenuProps) {
+  const [open, setOpen] = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  const items = hasImage
+    ? [
+        { icon: Eye, label: 'Ver foto', onClick: () => { onView(); setOpen(false); } },
+        { icon: ImagePlus, label: 'Cambiar foto', onClick: () => fileRef.current?.click() },
+        { icon: Pencil, label: 'Editar foto', onClick: () => { onEdit(); setOpen(false); } },
+        { icon: Trash2, label: 'Eliminar foto', onClick: () => { setConfirmRemove(true); setOpen(false); }, danger: true },
+      ]
+    : [
+        { icon: ImagePlus, label: 'Agregar foto', onClick: () => fileRef.current?.click() },
+      ];
+
+  return (
+    <div className="relative" ref={ref}>
+      <div onClick={() => setOpen((o) => !o)}>{trigger}</div>
+
+      {open && (
+        <div className={cn('absolute z-30 mt-1 w-48 rounded-xl border border-app bg-[var(--vex-surface)] p-1 shadow-card', align === 'right' ? 'right-0' : 'left-0')}>
+          {items.map((item) => (
+            <button
+              key={item.label}
+              onClick={item.onClick}
+              className={cn(
+                'flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition',
+                item.danger ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40' : 'text-app hover:bg-[var(--vex-surface-2)]',
+              )}
+            >
+              <item.icon size={16} />
+              {item.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {confirmRemove && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[var(--vex-overlay)] p-4 backdrop-blur-sm" onClick={() => setConfirmRemove(false)}>
+          <div className="w-full max-w-sm rounded-2xl border border-app bg-[var(--vex-surface)] p-6 text-center shadow-card" onClick={(e) => e.stopPropagation()}>
+            <h2 className="font-display text-lg font-bold text-strong">¿Eliminar foto?</h2>
+            <p className="mt-1.5 text-sm text-muted">Esta acción no se puede deshacer.</p>
+            <div className="mt-5 flex gap-3">
+              <button onClick={() => setConfirmRemove(false)} className="btn-ghost flex-1 py-2.5 text-sm">Cancelar</button>
+              <button
+                onClick={() => { onRemove(); setConfirmRemove(false); }}
+                className="flex-1 rounded-xl bg-red-600 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700"
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => {
+        const file = e.target.files?.[0];
+        if (file) { onChange(file); setOpen(false); }
+        e.target.value = '';
+      }} />
+    </div>
+  );
+}

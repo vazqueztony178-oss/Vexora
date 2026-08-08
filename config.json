@@ -1,0 +1,196 @@
+/*
+# Create messaging, notifications, connection requests, and calls tables
+
+## New Tables
+
+### conversations
+- 1:1 conversations between two users
+- `participant_ids` is a text array with exactly 2 user IDs
+- `last_message_at` for sorting conversations by most recent activity
+
+### messages
+- All messages stored in the database, synced via realtime
+- `conversation_id` references the conversation
+- `sender_id` and `receiver_id` for direct addressing
+- `status`: sent, delivered, read
+- `delivered_at`, `read_at` timestamps for read receipts
+- `attachment_data` stores JSON-encoded attachment
+- `reply_to_id` for message replies
+- `forwarded_from_id` for forwarded messages
+- `reactions_data` stores JSON array of {emoji, userId}
+
+### notifications
+- Real notifications for all social events
+- `user_id` is the recipient
+- `actor_user_id` is who triggered the notification
+- `type`: connection_request, connection_accepted, message, comment, reply, 
+   reaction, like, share, mention, tag, missed_call, follow
+- `reference_id` links to the related entity (post, message, request, etc.)
+- `is_read` boolean, `read_at` timestamp
+
+### connection_requests
+- `sender_user_id` sends request to `receiver_user_id`
+- `status`: pending, accepted, rejected
+- `responded_at` timestamp
+
+### calls
+- Log of all calls (audio/video)
+- `caller_id`, `receiver_id`
+- `type`: audio, video
+- `status`: calling, ringing, in_call, ended, declined, missed, unanswered
+- `started_at`, `ended_at` timestamps
+
+## Security
+- RLS enabled on all tables with permissive policies
+- App uses custom auth, ownership verified in application layer
+*/
+
+-- ===================== CONVERSATIONS =====================
+CREATE TABLE IF NOT EXISTS conversations (
+  id text PRIMARY KEY DEFAULT ('cv_' || gen_random_uuid()::text),
+  participant_ids text[] NOT NULL DEFAULT '{}',
+  created_at timestamptz NOT NULL DEFAULT now(),
+  last_message_at timestamptz
+);
+
+ALTER TABLE conversations ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "conversations_select_all" ON conversations;
+CREATE POLICY "conversations_select_all" ON conversations FOR SELECT
+  TO anon, authenticated USING (true);
+DROP POLICY IF EXISTS "conversations_insert_all" ON conversations;
+CREATE POLICY "conversations_insert_all" ON conversations FOR INSERT
+  TO anon, authenticated WITH CHECK (true);
+DROP POLICY IF EXISTS "conversations_update_all" ON conversations;
+CREATE POLICY "conversations_update_all" ON conversations FOR UPDATE
+  TO anon, authenticated USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "conversations_delete_all" ON conversations;
+CREATE POLICY "conversations_delete_all" ON conversations FOR DELETE
+  TO anon, authenticated USING (true);
+
+-- GIN index for array containment queries (finding conversations by participant)
+CREATE INDEX IF NOT EXISTS idx_conversations_participants ON conversations USING GIN (participant_ids);
+CREATE INDEX IF NOT EXISTS idx_conversations_last_msg ON conversations (last_message_at DESC NULLS LAST);
+
+-- ===================== MESSAGES =====================
+CREATE TABLE IF NOT EXISTS messages (
+  id text PRIMARY KEY DEFAULT ('m_' || gen_random_uuid()::text),
+  conversation_id text NOT NULL,
+  sender_id text NOT NULL,
+  receiver_id text NOT NULL,
+  text text NOT NULL DEFAULT '',
+  message_type text NOT NULL DEFAULT 'text',
+  status text NOT NULL DEFAULT 'sent',
+  attachment_data jsonb,
+  reactions_data jsonb DEFAULT '[]',
+  reply_to_id text,
+  forwarded_from_id text,
+  delivered_at timestamptz,
+  read_at timestamptz,
+  edited_at timestamptz,
+  deleted boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "messages_select_all" ON messages;
+CREATE POLICY "messages_select_all" ON messages FOR SELECT
+  TO anon, authenticated USING (true);
+DROP POLICY IF EXISTS "messages_insert_all" ON messages;
+CREATE POLICY "messages_insert_all" ON messages FOR INSERT
+  TO anon, authenticated WITH CHECK (true);
+DROP POLICY IF EXISTS "messages_update_all" ON messages;
+CREATE POLICY "messages_update_all" ON messages FOR UPDATE
+  TO anon, authenticated USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "messages_delete_all" ON messages;
+CREATE POLICY "messages_delete_all" ON messages FOR DELETE
+  TO anon, authenticated USING (true);
+
+CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages (conversation_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_messages_receiver ON messages (receiver_id, status);
+CREATE INDEX IF NOT EXISTS idx_messages_sender ON messages (sender_id);
+
+-- ===================== NOTIFICATIONS =====================
+CREATE TABLE IF NOT EXISTS notifications (
+  id text PRIMARY KEY DEFAULT ('n_' || gen_random_uuid()::text),
+  user_id text NOT NULL,
+  actor_user_id text NOT NULL,
+  type text NOT NULL,
+  reference_id text,
+  message text NOT NULL DEFAULT '',
+  is_read boolean NOT NULL DEFAULT false,
+  read_at timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "notifications_select_all" ON notifications;
+CREATE POLICY "notifications_select_all" ON notifications FOR SELECT
+  TO anon, authenticated USING (true);
+DROP POLICY IF EXISTS "notifications_insert_all" ON notifications;
+CREATE POLICY "notifications_insert_all" ON notifications FOR INSERT
+  TO anon, authenticated WITH CHECK (true);
+DROP POLICY IF EXISTS "notifications_update_all" ON notifications;
+CREATE POLICY "notifications_update_all" ON notifications FOR UPDATE
+  TO anon, authenticated USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "notifications_delete_all" ON notifications;
+CREATE POLICY "notifications_delete_all" ON notifications FOR DELETE
+  TO anon, authenticated USING (true);
+
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications (user_id, is_read, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_notifications_unread ON notifications (user_id) WHERE is_read = false;
+
+-- ===================== CONNECTION REQUESTS =====================
+CREATE TABLE IF NOT EXISTS connection_requests (
+  id text PRIMARY KEY DEFAULT ('cr_' || gen_random_uuid()::text),
+  sender_user_id text NOT NULL,
+  receiver_user_id text NOT NULL,
+  status text NOT NULL DEFAULT 'pending',
+  created_at timestamptz NOT NULL DEFAULT now(),
+  responded_at timestamptz,
+  UNIQUE (sender_user_id, receiver_user_id)
+);
+
+ALTER TABLE connection_requests ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "connection_requests_select_all" ON connection_requests;
+CREATE POLICY "connection_requests_select_all" ON connection_requests FOR SELECT
+  TO anon, authenticated USING (true);
+DROP POLICY IF EXISTS "connection_requests_insert_all" ON connection_requests;
+CREATE POLICY "connection_requests_insert_all" ON connection_requests FOR INSERT
+  TO anon, authenticated WITH CHECK (true);
+DROP POLICY IF EXISTS "connection_requests_update_all" ON connection_requests;
+CREATE POLICY "connection_requests_update_all" ON connection_requests FOR UPDATE
+  TO anon, authenticated USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "connection_requests_delete_all" ON connection_requests;
+CREATE POLICY "connection_requests_delete_all" ON connection_requests FOR DELETE
+  TO anon, authenticated USING (true);
+
+CREATE INDEX IF NOT EXISTS idx_conn_requests_receiver ON connection_requests (receiver_user_id, status);
+CREATE INDEX IF NOT EXISTS idx_conn_requests_sender ON connection_requests (sender_user_id, status);
+
+-- ===================== CALLS =====================
+CREATE TABLE IF NOT EXISTS calls (
+  id text PRIMARY KEY DEFAULT ('call_' || gen_random_uuid()::text),
+  caller_id text NOT NULL,
+  receiver_id text NOT NULL,
+  type text NOT NULL DEFAULT 'audio',
+  status text NOT NULL DEFAULT 'calling',
+  started_at timestamptz NOT NULL DEFAULT now(),
+  ended_at timestamptz
+);
+
+ALTER TABLE calls ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "calls_select_all" ON calls;
+CREATE POLICY "calls_select_all" ON calls FOR SELECT
+  TO anon, authenticated USING (true);
+DROP POLICY IF EXISTS "calls_insert_all" ON calls;
+CREATE POLICY "calls_insert_all" ON calls FOR INSERT
+  TO anon, authenticated WITH CHECK (true);
+DROP POLICY IF EXISTS "calls_update_all" ON calls;
+CREATE POLICY "calls_update_all" ON calls FOR UPDATE
+  TO anon, authenticated USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "calls_delete_all" ON calls;
+CREATE POLICY "calls_delete_all" ON calls FOR DELETE
+  TO anon, authenticated USING (true);
+
+CREATE INDEX IF NOT EXISTS idx_calls_receiver ON calls (receiver_id, status);
+CREATE INDEX IF NOT EXISTS idx_calls_caller ON calls (caller_id, status);

@@ -1,0 +1,58 @@
+/*
+# Fix user_presence to use text user_id
+
+## Problem
+The existing `user_presence` table uses `uuid` for `user_id`, but Vexora generates
+text-based IDs like `u_qq6evs0094op`. This causes a 400 error:
+`invalid input syntax for type uuid: "u_qq6evs0094op"`
+
+## Changes
+1. Create a new `presence` table with `text` user_id (replaces `user_presence`)
+2. Enable RLS with permissive policies (app uses custom auth, not Supabase auth,
+   so auth.uid() is always null — security is enforced in the application layer)
+3. The old `user_presence` table is kept to avoid data loss, but the app will
+   stop using it
+
+## New Tables
+- `presence`
+  - `user_id` (text, primary key) — the Vexora user ID
+  - `is_online` (boolean, default false)
+  - `last_seen_at` (timestamptz, default now())
+  - `show_online_status` (boolean, default true)
+  - `updated_at` (timestamptz, default now())
+
+## Security
+- RLS enabled with permissive policies for anon + authenticated
+- The app uses custom auth (SHA-256 password hashing, not Supabase auth),
+  so auth.uid() returns null. Ownership is verified in the application layer
+  by checking the current session's user ID against the row's user_id.
+*/
+
+CREATE TABLE IF NOT EXISTS presence (
+  user_id text PRIMARY KEY,
+  is_online boolean NOT NULL DEFAULT false,
+  last_seen_at timestamptz NOT NULL DEFAULT now(),
+  show_online_status boolean NOT NULL DEFAULT true,
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+ALTER TABLE presence ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "presence_select_all" ON presence;
+CREATE POLICY "presence_select_all" ON presence FOR SELECT
+  TO anon, authenticated USING (true);
+
+DROP POLICY IF EXISTS "presence_insert_all" ON presence;
+CREATE POLICY "presence_insert_all" ON presence FOR INSERT
+  TO anon, authenticated WITH CHECK (true);
+
+DROP POLICY IF EXISTS "presence_update_all" ON presence;
+CREATE POLICY "presence_update_all" ON presence FOR UPDATE
+  TO anon, authenticated USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "presence_delete_all" ON presence;
+CREATE POLICY "presence_delete_all" ON presence FOR DELETE
+  TO anon, authenticated USING (true);
+
+-- Index for faster realtime filtering
+CREATE INDEX IF NOT EXISTS idx_presence_online ON presence (is_online) WHERE is_online = true;

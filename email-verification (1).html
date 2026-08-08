@@ -1,0 +1,20 @@
+/*
+  # Remove the open DELETE grant on user_presence
+
+  ## Problem
+  `presence_delete_all` allowed anon and authenticated to delete ANY presence row
+  (`USING (true)`), so anyone holding the publishable anon key could wipe the whole
+  table. The application never deletes presence rows: `src/hooks/usePresence.ts`
+  only ever upserts and selects.
+
+  ## Change
+  - Drop the DELETE policy.
+  - Revoke the DELETE privilege from anon and authenticated.
+
+  SELECT / INSERT / UPDATE are unchanged, so the heartbeat keeps working.
+*/
+
+DROP POLICY IF EXISTS "presence_delete_all" ON user_presence;
+
+REVOKE DELETE ON user_presence FROM anon;
+REVOKE DELETE ON user_presence FROM authenticated;

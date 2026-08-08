@@ -1,0 +1,79 @@
+/*
+# Create user_preferences table
+
+## Purpose
+Stores per-user privacy settings and appearance preferences so they sync
+across devices. The frontend also mirrors these in localStorage as a
+fallback when the user is offline or the session is not yet loaded.
+
+## New Tables
+- `user_preferences`
+  - `user_id` (uuid, primary key, references auth.users)
+  - `profile_visibility` (text: 'public' | 'friends' | 'private', default 'public')
+  - `default_post_visibility` (text: 'public' | 'friends' | 'private', default 'public')
+  - `photos_visibility` (text, default 'public')
+  - `videos_visibility` (text, default 'public')
+  - `stories_visibility` (text, default 'friends')
+  - `friends_visibility` (text, default 'public')
+  - `birth_date_visibility` (text, default 'public')
+  - `location_visibility` (text, default 'public')
+  - `family_visibility` (text, default 'public')
+  - `personal_info_visibility` (text, default 'public')
+  - `who_can_message` (text: 'all' | 'friends' | 'none', default 'all')
+  - `who_can_call` (text: 'all' | 'friends' | 'none', default 'all')
+  - `who_can_comment` (text: 'all' | 'friends' | 'none', default 'all')
+  - `who_can_follow` (text: 'all' | 'approval', default 'all')
+  - `theme_mode` (text: 'light' | 'dark' | 'system' | 'glass', default 'system')
+  - `glass_intensity` (text: 'soft' | 'medium' | 'intense', default 'medium')
+  - `updated_at` (timestamptz, default now())
+
+## Security
+- RLS enabled.
+- Each user can only read/write their own row (auth.uid() = user_id).
+- INSERT has WITH CHECK (auth.uid() = user_id).
+- UPDATE has USING + WITH CHECK (auth.uid() = user_id).
+- DELETE has USING (auth.uid() = user_id).
+*/
+
+CREATE TABLE IF NOT EXISTS user_preferences (
+  user_id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  profile_visibility text NOT NULL DEFAULT 'public' CHECK (profile_visibility IN ('public','friends','private')),
+  default_post_visibility text NOT NULL DEFAULT 'public' CHECK (default_post_visibility IN ('public','friends','private')),
+  photos_visibility text NOT NULL DEFAULT 'public' CHECK (photos_visibility IN ('public','friends','private')),
+  videos_visibility text NOT NULL DEFAULT 'public' CHECK (videos_visibility IN ('public','friends','private')),
+  stories_visibility text NOT NULL DEFAULT 'friends' CHECK (stories_visibility IN ('public','friends','private')),
+  friends_visibility text NOT NULL DEFAULT 'public' CHECK (friends_visibility IN ('public','friends','private')),
+  birth_date_visibility text NOT NULL DEFAULT 'public' CHECK (birth_date_visibility IN ('public','friends','private')),
+  location_visibility text NOT NULL DEFAULT 'public' CHECK (location_visibility IN ('public','friends','private')),
+  family_visibility text NOT NULL DEFAULT 'public' CHECK (family_visibility IN ('public','friends','private')),
+  personal_info_visibility text NOT NULL DEFAULT 'public' CHECK (personal_info_visibility IN ('public','friends','private')),
+  who_can_message text NOT NULL DEFAULT 'all' CHECK (who_can_message IN ('all','friends','none')),
+  who_can_call text NOT NULL DEFAULT 'all' CHECK (who_can_call IN ('all','friends','none')),
+  who_can_comment text NOT NULL DEFAULT 'all' CHECK (who_can_comment IN ('all','friends','none')),
+  who_can_follow text NOT NULL DEFAULT 'all' CHECK (who_can_follow IN ('all','approval')),
+  theme_mode text NOT NULL DEFAULT 'system' CHECK (theme_mode IN ('light','dark','system','glass')),
+  glass_intensity text NOT NULL DEFAULT 'medium' CHECK (glass_intensity IN ('soft','medium','intense')),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+ALTER TABLE user_preferences ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "select_own_preferences" ON user_preferences;
+CREATE POLICY "select_own_preferences"
+  ON user_preferences FOR SELECT
+  TO authenticated USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "insert_own_preferences" ON user_preferences;
+CREATE POLICY "insert_own_preferences"
+  ON user_preferences FOR INSERT
+  TO authenticated WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "update_own_preferences" ON user_preferences;
+CREATE POLICY "update_own_preferences"
+  ON user_preferences FOR UPDATE
+  TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "delete_own_preferences" ON user_preferences;
+CREATE POLICY "delete_own_preferences"
+  ON user_preferences FOR DELETE
+  TO authenticated USING (auth.uid() = user_id);
